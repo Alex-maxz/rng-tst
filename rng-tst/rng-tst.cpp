@@ -104,6 +104,7 @@ int* toaddr(int32_t* arr, int size) {
 
     }
     delete[]tmparr;
+    delete[]arr;
     
     for (i = 0; i < size; i++) {
 
@@ -121,7 +122,7 @@ int* toaddr(int32_t* arr, int size) {
 int* rng(int num) {
     int32_t* arrpoint;
     arrpoint = new int32_t[num];
-    std::time_t seed = 20; //std::time(0);
+    std::time_t seed = std::time(0);  //potential issue: time resolution is 1 second
     int i;
     int j;
     for (i = 0; i < num; i++) {
@@ -132,6 +133,8 @@ int* rng(int num) {
             seed = ((((seed >> 31) ^ (seed >> 30) ^ (seed >> 29) ^ (seed >> 27) ^ (seed >> 25) ^ seed) & 0x00000001) << 31) | (seed >> 1);
 
             // probably could write the whole number and be fine
+            // Removed temp. result seems to be the same
+            // actually potentially longer loop because time is probably 64bit
             //tmp += seed & 1;
 
         }
