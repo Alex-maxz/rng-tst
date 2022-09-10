@@ -13,7 +13,7 @@ int movethrough(int* arr);
 
 int main(int argc, char* argv[]) {
 
-    int arr_size = 1000000;
+    int arr_size = 20;
 
     int32_t* arrpoint;
 
@@ -104,15 +104,15 @@ int* toaddr(int32_t* arr, int size) {
 
     }
     delete[]tmparr;
-    /*
+    
     for (i = 0; i < size; i++) {
 
-        //printf("%i. %i\n" ,i, tmparr2[i]);
+         printf("%i. %i\n" ,i, tmparr2[i]);
 
     }
 
     printf("\n");
-    */
+    
     return tmparr2;
     
 }
@@ -121,22 +121,21 @@ int* toaddr(int32_t* arr, int size) {
 int* rng(int num) {
     int32_t* arrpoint;
     arrpoint = new int32_t[num];
-    std::time_t seed = std::time(0);
+    std::time_t seed = 20; //std::time(0);
     int i;
     int j;
-    int32_t tmp = 0;
     for (i = 0; i < num; i++) {
         for (j = 0; j < 32; j++) {
-            tmp = tmp << 1;
 
-            //didn't quite understand the Fibbonaci part and what exactly is it's pseudo-random output
+            //didn't quite understand the Fibbonaci part and what exactly is it's pseudo-random output. Bit sequence seems more "bulletproof" to me
+
             seed = ((((seed >> 31) ^ (seed >> 30) ^ (seed >> 29) ^ (seed >> 27) ^ (seed >> 25) ^ seed) & 0x00000001) << 31) | (seed >> 1);
 
-            // probably could write the whole number and would be fine
-            tmp += seed & 1;
+            // probably could write the whole number and be fine
+            //tmp += seed & 1;
 
         }
-        arrpoint[i] = tmp;
+        arrpoint[i] = (int32_t)seed;
     }
 
 
