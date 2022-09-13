@@ -38,9 +38,9 @@ int main(int argc, char* argv[]) {
 
     int mulc = 2;
 
-    for (mulc = 2; mulc < 20; mulc++) {
+    for (mulc = 2; mulc < 14; mulc++) {
 
-        arr_size = pow(2, mulc);
+        arr_size = pow(3, mulc);
 
         printf("Generated %i numbers\n", arr_size);
 
@@ -183,6 +183,10 @@ int* neworder(int32_t* arr, int size) {
     }
 
     //printf("\n");
+
+
+    //creates path throuh all cells
+
 
     for (i = 0; i < size-1; i++) {
 
