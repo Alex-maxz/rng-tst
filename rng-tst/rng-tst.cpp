@@ -5,6 +5,11 @@
 #include <iostream>
 #include <algorithm>
 #include <math.h>
+//#include <memoryapi.h>
+#include <windows.h>
+#include <tchar.h>
+#include <stdio.h>
+#include <stdlib.h> 
 
 int* rng(int num);
 
@@ -14,23 +19,33 @@ int* neworder(int32_t* arr, int size);
 
 int movethrough(int* arr);
 
+int abs2rel(int32_t* arr, int size);
+
+
 int main(int argc, char* argv[]) {
 
-    int arr_size = 200;
+    int arr_size = 5;
 
     int32_t* arrpoint;
 
     arrpoint = rng(arr_size);
+    
+    //printf("el maxxo");
+
+    arrpoint = neworder(arrpoint, arr_size);
+
+    abs2rel(arrpoint, arr_size);
 
     /*
     for (i = 0; i < arr_size; i++) {
 
         printf(" %i", arrpoint[i]);
     }
-    */
-    arrpoint = neworder(arrpoint, arr_size);
+     arrpoint = neworder(arrpoint, arr_size);
 
     int m = movethrough(arrpoint);
+
+
 
     delete[]arrpoint;
 
@@ -55,16 +70,168 @@ int main(int argc, char* argv[]) {
 
 
     }
+   */
+
+}
+
+int abs2rel(int32_t* arr, int size) {
+    int count = 0;
+    int ix = 0;
+    bool isbigger = 0;
+    //bool isless = 0;
+    for (ix = 0; ix < size; ix++) {
+
+        printf("%i. %i\n", ix, arr[ix]);
+
+    }
+    printf("\n");
+
+    for (count = 0; count < size; count++) {
+        if (arr[count] == 0) {
+            arr[count] = size;
+        }
+        
+        if (arr[count] > count) { isbigger = 1; }
+        else { isbigger = 0; }
+        arr[count] = abs(arr[count] - count) + 1 - 2*(int)(arr[count] > count);
+        if (!isbigger) { arr[count] *= -1; }
+        
+        // translation to relative jumps (as in jupm 2 blocks down)
+                                                                                 //takes "active memory cell" pointer movement into account
+
+        
+    }
+    
+    for (ix = 0; ix < size; ix++) {
+
+        printf("%i. %i\n", ix, arr[ix]);
+
+    }
+
+    printf("\n");
+
+
+    LPVOID lpvBase;
+    LPTSTR lpPtr;
+    BOOL bSuccess;
+    DWORD i;
+    SYSTEM_INFO sSysInfo;
+    
+    GetSystemInfo(&sSysInfo);
+
+    _tprintf(TEXT("This computer has page size %d.\n"), sSysInfo.dwPageSize);
+
+    
+    int dwPageSize = sSysInfo.dwPageSize;  // system page size, 4096
+
+    lpvBase = VirtualAlloc(
+        NULL,                 // System selects address
+        size*5+1,               // Allocate 5*num + 1 bytes for instructions
+        MEM_COMMIT | MEM_RESERVE,          // Magic
+        PAGE_EXECUTE_READWRITE); // Mark as readable, writeable and executable
+
+    if (lpvBase == NULL) {
+        printf("This thing has failed\n");
+    }
+
+    lpPtr = (LPTSTR)lpvBase;
+
+    int ii = 0;
+    unsigned int addr = (int)lpPtr;   //lpPtr[1] starts at the next page, 4096 cells down
+    unsigned int localaddr = addr;
+    unsigned int newaddr;
+    //int nextaddr = addr;
+
+    for (ii = 0; ii < size; ii++) {
+        localaddr = addr + ii * 5;
+        newaddr = arr[ii]*5;
+        *(unsigned char*)localaddr = 0xE9;
+        localaddr++;
+        *(unsigned char*)localaddr = (newaddr >> 0); // lower 8 bits
+        localaddr++;
+        *(unsigned char*)localaddr = (newaddr >> 8); 
+        localaddr++;
+        *(unsigned char*)localaddr = (newaddr >> 16); 
+        localaddr++;
+        *(unsigned char*)localaddr = (newaddr >> 24); // upper 8 bits 
+
+
+        /*
+
+        *(unsigned char*)localaddr = 0xE9;
+        localaddr++;
+        *(unsigned char*)localaddr = (unsigned char)(newaddr >> 0); // lower 8 bits
+        localaddr++;
+        *(unsigned char*)localaddr = (unsigned char)(newaddr >> 8);
+        localaddr++;
+        *(unsigned char*)localaddr = (unsigned char)(newaddr >> 16);
+        localaddr++;
+        *(unsigned char*)localaddr = (unsigned char)(newaddr >> 24); // upper 8 bits 
+        */
+        /*
+        nextaddr = addr + i * 5 + 1;
+        *(unsigned char*)localaddr = 0xE9;
+        localaddr = addr + i * 5 + 1; 
+        *(unsigned char*)localaddr = 5 ;
+        localaddr = addr + i * 5 + 2;
+        *(unsigned char*)localaddr = 0;
+        localaddr = addr + i * 5 + 3;
+        *(unsigned char*)localaddr = 0;
+        localaddr = addr + i * 5 + 4;
+        *(unsigned char*)localaddr = 0;
+        * 
+        */
+    }
+
+    localaddr = addr + size * ii;
+    *(char*)localaddr = 0xc3;
+    printf("\n Addr = %i\n", addr);
+    printf("\n Localaddr = %i\n", localaddr);
+
+
+    //lpPtr[1] = 20;
+
+
+    
 
 
 
+  
+    
 
 
 
+    void (*CallAsFunction) (void);
 
+    //printf("\n%02x\n", &memspace[0]);
+    
+
+    CallAsFunction = (void(*)()) lpPtr;
+
+    CallAsFunction();
+
+    printf("\n");
+
+    //void(*)() exec = memspace;
+
+   // CallAsFunction();
+
+    //printf("%i\n", &assemblycode[0]);
+
+    //CallAsFunction = assemblycode;
+
+    //CallAsFunction();
+
+
+
+    printf("I've done it\n");
+
+    return 0;
 
 
 }
+
+
 int movethrough(int* arr) {
     int moves = 0;
     int i = 0;
