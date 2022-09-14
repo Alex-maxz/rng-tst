@@ -90,14 +90,16 @@ int abs2rel(int32_t* arr, int size) {
         if (arr[count] == 0) {
             arr[count] = size;
         }
-        
+
+        // translation to relative jumps (as in jupm 2 blocks down)
+       //takes "active memory cell" pointer movement into account
+
         if (arr[count] > count) { isbigger = 1; }
         else { isbigger = 0; }
         arr[count] = abs(arr[count] - count) + 1 - 2*(int)(arr[count] > count);
         if (!isbigger) { arr[count] *= -1; }
         
-        // translation to relative jumps (as in jupm 2 blocks down)
-                                                                                 //takes "active memory cell" pointer movement into account
+        
 
         
     }
@@ -144,7 +146,7 @@ int abs2rel(int32_t* arr, int size) {
 
     for (ii = 0; ii < size; ii++) {
         localaddr = addr + ii * 5;
-        newaddr = arr[ii]*5;
+        newaddr = arr[ii]*5;                        // 5 bytes per command
         *(unsigned char*)localaddr = 0xE9;
         localaddr++;
         *(unsigned char*)localaddr = (newaddr >> 0); // lower 8 bits
