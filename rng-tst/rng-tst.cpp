@@ -2,6 +2,7 @@
 //
 
 #include <ctime>
+#include <chrono>
 #include <iostream>
 #include <algorithm>
 #include <math.h>
@@ -21,10 +22,14 @@ int movethrough(int* arr);
 
 int abs2rel(int32_t* arr, int size);
 
+int movethroughalt(int* arr, int size);
+
+using namespace std::chrono;
+using namespace std;
 
 int main(int argc, char* argv[]) {
 
-    int arr_size = 5;
+    int arr_size = 1024*1024; //1024*1024;
 
     int32_t* arrpoint;
 
@@ -33,6 +38,8 @@ int main(int argc, char* argv[]) {
     //printf("el maxxo");
 
     arrpoint = neworder(arrpoint, arr_size);
+
+    movethrough(arrpoint);
 
     abs2rel(arrpoint, arr_size);
 
@@ -74,6 +81,19 @@ int main(int argc, char* argv[]) {
 
 }
 
+int movethroughalt(int* arr, int size) {
+    int i = 0;
+    int movecount = 0;
+    while (i < size) {
+
+        i += 1 + arr[i];
+        movecount++;
+    }
+
+    return movecount;
+
+}
+
 int abs2rel(int32_t* arr, int size) {
     int count = 0;
     int ix = 0;
@@ -81,7 +101,7 @@ int abs2rel(int32_t* arr, int size) {
     //bool isless = 0;
     for (ix = 0; ix < size; ix++) {
 
-        printf("%i. %i\n", ix, arr[ix]);
+    //    printf("%i. %i\n", ix, arr[ix]);
 
     }
     printf("\n");
@@ -104,9 +124,11 @@ int abs2rel(int32_t* arr, int size) {
         
     }
     
+    printf("\nNew took %i moves to make it\n", movethroughalt(arr, size));
+
     for (ix = 0; ix < size; ix++) {
 
-        printf("%i. %i\n", ix, arr[ix]);
+     //   printf("%i. %i\n", ix, arr[ix]);
 
     }
 
@@ -126,6 +148,8 @@ int abs2rel(int32_t* arr, int size) {
     
     int dwPageSize = sSysInfo.dwPageSize;  // system page size, 4096
 
+    printf("Size is %i\n", size);
+
     lpvBase = VirtualAlloc(
         NULL,                 // System selects address
         size*5+1,               // Allocate 5*num + 1 bytes for instructions
@@ -137,6 +161,8 @@ int abs2rel(int32_t* arr, int size) {
     }
 
     lpPtr = (LPTSTR)lpvBase;
+
+    printf("Addr is %i\n", (int)lpPtr);
 
     int ii = 0;
     unsigned int addr = (int)lpPtr;   //lpPtr[1] starts at the next page, 4096 cells down
@@ -185,21 +211,12 @@ int abs2rel(int32_t* arr, int size) {
         */
     }
 
-    localaddr = addr + size * ii;
-    *(char*)localaddr = 0xc3;
+    localaddr++; // = addr + size * ii;
+    if (localaddr) {
+        *(char*)localaddr = 0xc3;
+    }
     printf("\n Addr = %i\n", addr);
     printf("\n Localaddr = %i\n", localaddr);
-
-
-    //lpPtr[1] = 20;
-
-
-    
-
-
-
-  
-    
 
 
 
@@ -210,7 +227,10 @@ int abs2rel(int32_t* arr, int size) {
 
     CallAsFunction = (void(*)()) lpPtr;
 
+
     CallAsFunction();
+
+
 
     printf("\n");
 
@@ -243,8 +263,11 @@ int movethrough(int* arr) {
         i = arr[i];
         //printf("%i\n", i);
     }
+    printf("took %i moves to move throuhg", moves);
 
     return moves;
+
+
 
 }
 int* toaddr(int32_t* arr, int size) {
