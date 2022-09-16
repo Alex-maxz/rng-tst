@@ -29,29 +29,32 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
 
-    int arr_size = 1024*1024; //1024*1024;
+    int arr_size_init = 1024; //1024*1024;
 
     int32_t* arrpoint;
-
+    int pow2 = 0;
     int i = 0;
+    int exec_time = 0;
+    int old_exec_time = 1;
+    for (pow2 = 2; pow2 < 11; pow2++) {
+        for (i = 0; i < 10; i++) {
 
-    for (i = 0; i < 10; i++) {
+            int arr_size = arr_size_init * pow(2, pow2);
+            arrpoint = rng(arr_size);
 
-        arrpoint = rng(arr_size);
+            //printf("el maxxo");
 
-        //printf("el maxxo");
+            arrpoint = neworder(arrpoint, arr_size);
 
-        arrpoint = neworder(arrpoint, arr_size);
+            movethrough(arrpoint);
 
-        movethrough(arrpoint);
-
-
-
-
-        abs2rel(arrpoint, arr_size);
+            exec_time += abs2rel(arrpoint, arr_size);
+        }
+        printf("10 iterations done, for size %i, execution time is %i microseconds on average\n", (int)(arr_size_init*pow(2, pow2)), exec_time/10);
+        printf("Difference is %i times\n", exec_time / old_exec_time);
+        old_exec_time = exec_time;
     }
-
-    printf("10 iterations done\n");
+    
     /*
     for (i = 0; i < arr_size; i++) {
 
@@ -113,7 +116,7 @@ int abs2rel(int32_t* arr, int size) {
     //    printf("%i. %i\n", ix, arr[ix]);
 
     }
-    printf("\n");
+    //printf("\n");
 
     for (count = 0; count < size; count++) {
         if (arr[count] == 0) {
@@ -133,7 +136,7 @@ int abs2rel(int32_t* arr, int size) {
         
     }
     
-    printf("\nNew took %i moves to make it\n", movethroughalt(arr, size));
+    //printf("\nNew took %i moves to make it\n", movethroughalt(arr, size));
 
     for (ix = 0; ix < size; ix++) {
 
@@ -141,7 +144,7 @@ int abs2rel(int32_t* arr, int size) {
 
     }
 
-    printf("\n");
+    //printf("\n");
 
 
     LPVOID lpvBase;
@@ -152,12 +155,12 @@ int abs2rel(int32_t* arr, int size) {
     
     GetSystemInfo(&sSysInfo);
 
-    _tprintf(TEXT("This computer has page size %d.\n"), sSysInfo.dwPageSize);
+    //_tprintf(TEXT("This computer has page size %d.\n"), sSysInfo.dwPageSize);
 
     
     int dwPageSize = sSysInfo.dwPageSize;  // system page size, 4096
 
-    printf("Size is %i\n", size);
+    //printf("Size is %i\n", size);
 
     lpvBase = VirtualAlloc(
         NULL,                 // System selects address
@@ -171,7 +174,7 @@ int abs2rel(int32_t* arr, int size) {
 
     lpPtr = (LPTSTR)lpvBase;
 
-    printf("Addr is %i\n", (int)lpPtr);
+    //printf("Addr is %i\n", (int)lpPtr);
 
     int ii = 0;
     unsigned int addr = (int)lpPtr;   //lpPtr[1] starts at the next page, 4096 cells down
@@ -224,8 +227,8 @@ int abs2rel(int32_t* arr, int size) {
     if (localaddr) {
         *(char*)localaddr = 0xc3;
     }
-    printf("\n Addr = %i\n", addr);
-    printf("\n Localaddr = %i\n", localaddr);
+    //printf("\n Addr = %i\n", addr);
+    //printf("\n Localaddr = %i\n", localaddr);
 
 
 
@@ -244,9 +247,9 @@ int abs2rel(int32_t* arr, int size) {
 
     auto diff = duration_cast<microseconds>(end - start);
 
-    std::cout << "Execution time is " << diff.count() << " microseconds\n";
+    //std::cout << "Execution time is " << diff.count() << " microseconds\n";
 
-    printf("\n");
+    //printf("\n");
 
     //void(*)() exec = memspace;
 
@@ -265,9 +268,9 @@ int abs2rel(int32_t* arr, int size) {
     );
 
 
-    printf("I've done it\n");
+    //printf("I've done it\n");
 
-    return 0;
+    return (int)diff.count();
 
 
 }
@@ -282,7 +285,7 @@ int movethrough(int* arr) {
         i = arr[i];
         //printf("%i\n", i);
     }
-    printf("took %i moves to move throuhg", moves);
+    //printf("took %i moves to move throuhg", moves);
 
     return moves;
 
@@ -345,7 +348,7 @@ int* toaddr(int32_t* arr, int size) {
 
     }
 
-    printf("\n");
+    //printf("\n");
     
     return tmparr2;
     
