@@ -31,13 +31,15 @@ int main(int argc, char* argv[]) {
 
     int arr_size_init = 1024; //1024*1024;
 
-    int32_t* arrpoint;
+   
     int pow2 = 0;
     int i = 0;
     int exec_time = 0;
     int old_exec_time = 1;
     for (pow2 = 2; pow2 < 11; pow2++) {
         for (i = 0; i < 10; i++) {
+
+            int32_t* arrpoint;
 
             int arr_size = arr_size_init * pow(2, pow2);
             arrpoint = rng(arr_size);
@@ -49,6 +51,8 @@ int main(int argc, char* argv[]) {
             movethrough(arrpoint);
 
             exec_time += abs2rel(arrpoint, arr_size);
+
+            delete[]arrpoint;
         }
         printf("10 iterations done, for size %i, execution time is %i microseconds on average\n", (int)(arr_size_init*pow(2, pow2)), exec_time/10);
         printf("Difference is %f times\n", exec_time / (float)old_exec_time);
@@ -263,9 +267,11 @@ int abs2rel(int32_t* arr, int size) {
 
     bool freesuccess =  VirtualFree(
         lpvBase,
-        size*5+1,
-        MEM_DECOMMIT|MEM_RELEASE
+        0, //size*5+1,
+        MEM_RELEASE
     );
+
+    printf("Delete success is %i\n", freesuccess);
 
 
     //printf("I've done it\n");
@@ -434,16 +440,19 @@ int* neworder(int32_t* arr, int size) {
 
     }
     tmparr2[caddr] = 0;
+    
 
     for (i = 0; i < size; i++) {
 
-       // printf("%i. %i\n", i, tmparr2[i]);
+        arr[i] = tmparr2[i];
 
     }
+    delete[]tmparr;
+    delete[]tmparr2;
 
     //printf("\n");
 
-    return tmparr2;
+    return arr;
 
 }
 
