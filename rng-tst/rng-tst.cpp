@@ -33,16 +33,25 @@ int main(int argc, char* argv[]) {
 
     int32_t* arrpoint;
 
-    arrpoint = rng(arr_size);
-    
-    //printf("el maxxo");
+    int i = 0;
 
-    arrpoint = neworder(arrpoint, arr_size);
+    for (i = 0; i < 10; i++) {
 
-    movethrough(arrpoint);
+        arrpoint = rng(arr_size);
 
-    abs2rel(arrpoint, arr_size);
+        //printf("el maxxo");
 
+        arrpoint = neworder(arrpoint, arr_size);
+
+        movethrough(arrpoint);
+
+
+
+
+        abs2rel(arrpoint, arr_size);
+    }
+
+    printf("10 iterations done\n");
     /*
     for (i = 0; i < arr_size; i++) {
 
@@ -227,10 +236,15 @@ int abs2rel(int32_t* arr, int size) {
 
     CallAsFunction = (void(*)()) lpPtr;
 
+    auto start = high_resolution_clock::now();
 
     CallAsFunction();
 
+    auto end = high_resolution_clock::now();
 
+    auto diff = duration_cast<microseconds>(end - start);
+
+    std::cout << "Execution time is " << diff.count() << " microseconds\n";
 
     printf("\n");
 
@@ -244,6 +258,11 @@ int abs2rel(int32_t* arr, int size) {
 
     //CallAsFunction();
 
+    bool freesuccess =  VirtualFree(
+        lpvBase,
+        size*5+1,
+        MEM_DECOMMIT|MEM_RELEASE
+    );
 
 
     printf("I've done it\n");
