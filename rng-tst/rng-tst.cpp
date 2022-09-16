@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
             exec_time += abs2rel(arrpoint, arr_size);
         }
         printf("10 iterations done, for size %i, execution time is %i microseconds on average\n", (int)(arr_size_init*pow(2, pow2)), exec_time/10);
-        printf("Difference is %i times\n", exec_time / old_exec_time);
+        printf("Difference is %f times\n", exec_time / (float)old_exec_time);
         old_exec_time = exec_time;
     }
     
