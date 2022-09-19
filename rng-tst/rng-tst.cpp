@@ -8,7 +8,7 @@
 #include <math.h>
 //#include <memoryapi.h>
 #include <windows.h>
-#include <tchar.h>
+//#include <tchar.h>
 #include <stdio.h>
 #include <stdlib.h> 
 
@@ -17,6 +17,8 @@ int* rng(int num);
 int* toaddr(int32_t* arr, int size);
 
 int* neworder(int32_t* arr, int size);
+
+int checkassembly(LPBYTE startpointer, int size);
 
 int movethrough(int* arr);
 
@@ -31,6 +33,7 @@ int main(int argc, char* argv[]) {
 
     int arr_size_init = 1024; //1024*1024;
 
+
    
     int pow2 = 0;
     int i = 0;
@@ -40,8 +43,12 @@ int main(int argc, char* argv[]) {
         for (i = 0; i < 10; i++) {
 
             int32_t* arrpoint;
+            
 
-            int arr_size = arr_size_init * pow(2, pow2);
+            int arr_size = arr_size_init * (int)(pow(2, pow2));
+
+            //arr_size = 1024*1024;
+
             arrpoint = rng(arr_size);
 
             //printf("el maxxo");
@@ -59,45 +66,15 @@ int main(int argc, char* argv[]) {
         old_exec_time = exec_time;
     }
     
-    /*
-    for (i = 0; i < arr_size; i++) {
-
-        printf(" %i", arrpoint[i]);
-    }
-     arrpoint = neworder(arrpoint, arr_size);
-
-    int m = movethrough(arrpoint);
-
-
-
-    delete[]arrpoint;
-
-   // printf("Took %i moves to make it!\n", m);
-
-    int mulc = 2;
-
-    for (mulc = 2; mulc < 14; mulc++) {
-
-        arr_size = pow(3, mulc);
-
-        printf("Generated %i numbers\n", arr_size);
-
-        arrpoint = rng(arr_size);
-
-        arrpoint = neworder(arrpoint, arr_size);
-
-        int m = movethrough(arrpoint);
-
-        printf("Took %i moves to make it!\n\n", m);
-
-
-
-    }
-   */
+  
 
 }
 
 int movethroughalt(int* arr, int size) {
+
+    // moves through adress numbers
+    // checks for adress generation correctness
+
     int i = 0;
     int movecount = 0;
     while (i < size) {
@@ -110,7 +87,54 @@ int movethroughalt(int* arr, int size) {
 
 }
 
+int checkassebmly(LPBYTE startpointer, int size) {
+
+    //very simple assembly emulator
+    //returns completed instructions count
+
+    LPBYTE localpointer = startpointer;
+    int instruction_counter = 0;
+
+    int current_instruction = 90; // noop, 0xE9 = 233 = jmp, 0xc3 = 195 = ret
+    int32_t current_adress = 0;
+
+    while ((int)*localpointer != 195) {
+        
+        current_instruction = (int)*localpointer;
+        current_adress += (int)localpointer[4];
+        current_adress = current_adress << 8;
+        current_adress += (int)(localpointer[3]);
+        current_adress = current_adress << 8;
+        current_adress += (int)(localpointer[2]);
+        current_adress = current_adress << 8;
+        current_adress += (int)(localpointer[1]);
+        if (current_instruction == 0xe9) {
+            //printf("%i. Jmp %i\n", instruction_counter, current_adress/5);
+            localpointer += 5;
+            localpointer += current_adress;
+            current_adress = 0;
+            //printf("New adress is %llu\n", (long long int)localpointer);
+        }
+        else if (current_instruction != 195){
+            throw std::invalid_argument("Written instruction was wrong");
+        }
+
+        instruction_counter++;
+
+    }
+
+    return instruction_counter;
+
+}
+
 int abs2rel(int32_t* arr, int size) {
+
+    //main function
+    //trtansforms absolute cell numbers to relative jumps 
+    //generates assembly code in memory and calls for it's execution
+    //returns assemly exectuion time
+
+    int completion_time = 0;
     int count = 0;
     int ix = 0;
     bool isbigger = 0;
@@ -144,7 +168,7 @@ int abs2rel(int32_t* arr, int size) {
 
     for (ix = 0; ix < size; ix++) {
 
-     //   printf("%i. %i\n", ix, arr[ix]);
+       //printf("%i. %i\n", ix, arr[ix]);
 
     }
 
@@ -152,9 +176,6 @@ int abs2rel(int32_t* arr, int size) {
 
 
     LPVOID lpvBase;
-    LPTSTR lpPtr;
-    BOOL bSuccess;
-    DWORD i;
     SYSTEM_INFO sSysInfo;
     
     GetSystemInfo(&sSysInfo);
@@ -163,107 +184,79 @@ int abs2rel(int32_t* arr, int size) {
 
     
     int dwPageSize = sSysInfo.dwPageSize;  // system page size, 4096
+    
+    long long int memsize = size; 
+    memsize = memsize * 5 + 1;
 
     //printf("Size is %i\n", size);
 
     lpvBase = VirtualAlloc(
         NULL,                 // System selects address
-        size*5+1,               // Allocate 5*num + 1 bytes for instructions
+        memsize,               // Allocate 5*num + 1 bytes for instructions
         MEM_COMMIT | MEM_RESERVE,          // Magic
         PAGE_EXECUTE_READWRITE); // Mark as readable, writeable and executable
 
     if (lpvBase == NULL) {
-        printf("This thing has failed\n");
+        throw std::invalid_argument("Was unable to allocate memory");
     }
+    else {
+        //std::cout << "LpvBase is " << lpvBase << "\n";
 
-    lpPtr = (LPTSTR)lpvBase;
+        LPBYTE localaddr = (LPBYTE)lpvBase;
 
-    //printf("Addr is %i\n", (int)lpPtr);
+            
 
-    int ii = 0;
-    unsigned int addr = (int)lpPtr;   //lpPtr[1] starts at the next page, 4096 cells down
-    unsigned int localaddr = addr;
-    unsigned int newaddr;
-    //int nextaddr = addr;
+        int ii = 0;
+        printf("Addr is %llu\n", (long long int)localaddr);
+        int newaddr;
+        //int nextaddr = addr;
 
-    for (ii = 0; ii < size; ii++) {
-        localaddr = addr + ii * 5;
-        newaddr = arr[ii]*5;                        // 5 bytes per command
-        *(unsigned char*)localaddr = 0xE9;
-        localaddr++;
-        *(unsigned char*)localaddr = (newaddr >> 0); // lower 8 bits
-        localaddr++;
-        *(unsigned char*)localaddr = (newaddr >> 8); 
-        localaddr++;
-        *(unsigned char*)localaddr = (newaddr >> 16); 
-        localaddr++;
-        *(unsigned char*)localaddr = (newaddr >> 24); // upper 8 bits 
+        for (ii = 0; ii < size; ii++) {
+            newaddr = arr[ii] * 5;                        // 5 bytes per command
+            *localaddr = 0xE9;
+            localaddr++;
+            *localaddr = (newaddr >> 0); // lower 8 bits
+            localaddr++;
+            *localaddr = (newaddr >> 8);
+            localaddr++;
+            *localaddr = (newaddr >> 16);
+            localaddr++;
+            *localaddr = (newaddr >> 24); // upper 8 bits 
+            localaddr++;
 
 
-        /*
+        }
+        // = addr + size * ii;
+        //printf("Localaddr is %p\n", localaddr);
+        if (localaddr) {
+            *localaddr = 0xc3;
+        }
 
-        *(unsigned char*)localaddr = 0xE9;
-        localaddr++;
-        *(unsigned char*)localaddr = (unsigned char)(newaddr >> 0); // lower 8 bits
-        localaddr++;
-        *(unsigned char*)localaddr = (unsigned char)(newaddr >> 8);
-        localaddr++;
-        *(unsigned char*)localaddr = (unsigned char)(newaddr >> 16);
-        localaddr++;
-        *(unsigned char*)localaddr = (unsigned char)(newaddr >> 24); // upper 8 bits 
-        */
-        /*
-        nextaddr = addr + i * 5 + 1;
-        *(unsigned char*)localaddr = 0xE9;
-        localaddr = addr + i * 5 + 1; 
-        *(unsigned char*)localaddr = 5 ;
-        localaddr = addr + i * 5 + 2;
-        *(unsigned char*)localaddr = 0;
-        localaddr = addr + i * 5 + 3;
-        *(unsigned char*)localaddr = 0;
-        localaddr = addr + i * 5 + 4;
-        *(unsigned char*)localaddr = 0;
-        * 
-        */
+        int instruction_count = checkassebmly((LPBYTE)lpvBase, size);
+        printf("Instruction_count is %i\n", instruction_count);
+        //printf("\n Addr = %i\n", addr);
+        //printf("\n Localaddr = %i\n", localaddr);
+
+
+
+        void (*CallAsFunction) (void);
+
+        //printf("\n%02x\n", &memspace[0]);
+
+
+        CallAsFunction = (void(*)()) lpvBase;
+
+        auto start = high_resolution_clock::now();
+
+        CallAsFunction();
+
+        auto end = high_resolution_clock::now();
+
+        auto diff = duration_cast<microseconds>(end - start);
+
+        completion_time = (int)diff.count();
+        //std::cout << "Execution time is " << diff.count() << " microseconds\n";
     }
-
-    localaddr++; // = addr + size * ii;
-    if (localaddr) {
-        *(char*)localaddr = 0xc3;
-    }
-    //printf("\n Addr = %i\n", addr);
-    //printf("\n Localaddr = %i\n", localaddr);
-
-
-
-    void (*CallAsFunction) (void);
-
-    //printf("\n%02x\n", &memspace[0]);
-    
-
-    CallAsFunction = (void(*)()) lpPtr;
-
-    auto start = high_resolution_clock::now();
-
-    CallAsFunction();
-
-    auto end = high_resolution_clock::now();
-
-    auto diff = duration_cast<microseconds>(end - start);
-
-    //std::cout << "Execution time is " << diff.count() << " microseconds\n";
-
-    //printf("\n");
-
-    //void(*)() exec = memspace;
-
-   // CallAsFunction();
-
-    //printf("%i\n", &assemblycode[0]);
-
-    //CallAsFunction = assemblycode;
-
-    //CallAsFunction();
 
     bool freesuccess =  VirtualFree(
         lpvBase,
@@ -271,18 +264,25 @@ int abs2rel(int32_t* arr, int size) {
         MEM_RELEASE
     );
 
-    printf("Delete success is %i\n", freesuccess);
+
+    if (!freesuccess) {
+        throw std::invalid_argument("Was unable to free memory");
+    }
 
 
     //printf("I've done it\n");
 
-    return (int)diff.count();
+    return completion_time;
 
 
 }
 
 
 int movethrough(int* arr) {
+
+    //moves through array of relative jumps
+    //checks absolute adress to jmp conversion
+
     int moves = 0;
     int i = 0;
     while (arr[i] != 0) { // let's say when it hits 0, its eqivalent to the pointer pointing to "return" jump
@@ -299,6 +299,10 @@ int movethrough(int* arr) {
 
 }
 int* toaddr(int32_t* arr, int size) {
+
+    //generates random adress table from rng output
+    //generated adress table does not go through all memory cells
+
     int i = 0;
     int32_t* tmparr;
     tmparr = new int32_t[size];
@@ -361,6 +365,8 @@ int* toaddr(int32_t* arr, int size) {
 }
 
 int* neworder(int32_t* arr, int size) {
+
+    //generates adress table that includes all memory cells
 
     int i = 0;
     int32_t* tmparr;
@@ -456,41 +462,17 @@ int* neworder(int32_t* arr, int size) {
 
 }
 
-/*
 
-int* rng(int num) {
-    int32_t* arrpoint;
-    arrpoint = new int32_t[num];
-    std::time_t seed = 20; //std::time(0);  //potential issue: time resolution is 1 second
-    int i;
-    int j;
-    for (i = 0; i < num; i++) {
-        for (j = 0; j < 32; j++) {
-
-            //didn't quite understand the Fibbonaci part and what exactly is it's pseudo-random output. Bit sequence seems more "bulletproof" to me
-
-            seed = ((((seed >> 31) ^ (seed >> 30) ^ (seed >> 29) ^ (seed >> 27) ^ (seed >> 25) ^ seed) & 0x00000001) << 31) | (seed >> 1);
-
-            // probably could write the whole number and be fine
-            // Removed temp. result seems to be the same
-            // actually potentially longer loop because time is probably 64bit
-            //tmp += seed & 1;
-
-        }
-        arrpoint[i] = (int32_t)seed;
-    }
-
-
-
-    return arrpoint;
-}
-*/
 
 
 int* rng(int num) {
+
+    // generates array of random integers using LFSR
+
+
     int32_t* arrpoint;
     arrpoint = new int32_t[num];
-    std::time_t seed = std::time(0);  //potential issue: time resolution is 1 second
+    long long int seed = (long long int)std::time(0);  //potential issue: time resolution is 1 second
     int gencount = 0;
     int oldseed = seed;
     do {
