@@ -93,7 +93,7 @@ int checkassebmly(LPBYTE startpointer, int size) {
     //returns completed instructions count
 
     LPBYTE localpointer = startpointer;
-    LPBYTE maxpointer = startpointer + size * 5 + 1;
+    LPBYTE maxpointer = startpointer + (long long int)(size * 5) + 1;
 
     int instruction_counter = 0;
 
