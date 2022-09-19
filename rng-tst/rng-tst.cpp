@@ -192,7 +192,7 @@ int assembly_write_exec(int32_t* arr, int size) {
 
     lpvBase = VirtualAlloc(
         NULL,                 // System selects address
-        memsize,               // Allocate 5*num + 1 bytes for instructions
+        (SIZE_T)memsize,               // Allocate 5*num + 1 bytes for instructions
         MEM_COMMIT | MEM_RESERVE,          // Magic
         PAGE_EXECUTE_READWRITE); // Mark as readable, writeable and executable
 
@@ -474,7 +474,7 @@ int* rng(int num) {
     arrpoint = new int32_t[num];
     long long int seed = (long long int)std::time(0);  //potential issue: time resolution is 1 second
     int gencount = 0;
-    int oldseed = seed;
+    long long int oldseed = seed;
     do {
 
         seed = ((((seed >> 31) ^ (seed >> 30) ^ (seed >> 29) ^ (seed >> 27) ^ (seed >> 25) ^ seed) & 0x00000001) << 31) | (seed >> 1);
