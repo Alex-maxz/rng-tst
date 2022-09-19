@@ -22,7 +22,7 @@ int checkassembly(LPBYTE startpointer, int size);
 
 int movethrough(int* arr);
 
-int abs2rel(int32_t* arr, int size);
+int assembly_write_exec(int32_t* arr, int size);
 
 int movethroughalt(int* arr, int size);
 
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
 
             movethrough(arrpoint);
 
-            exec_time += abs2rel(arrpoint, arr_size);
+            exec_time += assembly_write_exec(arrpoint, arr_size);
 
             delete[]arrpoint;
         }
@@ -127,7 +127,7 @@ int checkassebmly(LPBYTE startpointer, int size) {
 
 }
 
-int abs2rel(int32_t* arr, int size) {
+int assembly_write_exec(int32_t* arr, int size) {
 
     //main function
     //trtansforms absolute cell numbers to relative jumps 
