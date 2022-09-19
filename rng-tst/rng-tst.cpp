@@ -93,6 +93,8 @@ int checkassebmly(LPBYTE startpointer, int size) {
     //returns completed instructions count
 
     LPBYTE localpointer = startpointer;
+    LPBYTE maxpointer = startpointer + size * 5 + 1;
+
     int instruction_counter = 0;
 
     int current_instruction = 90; // noop, 0xE9 = 233 = jmp, 0xc3 = 195 = ret
@@ -108,7 +110,7 @@ int checkassebmly(LPBYTE startpointer, int size) {
         current_adress += (int)(localpointer[2]);
         current_adress = current_adress << 8;
         current_adress += (int)(localpointer[1]);
-        if (current_instruction == 0xe9) {
+        if (current_instruction == 0xe9 && current_adress != -5) {
             //printf("%i. Jmp %i\n", instruction_counter, current_adress/5);
             localpointer += 5;
             localpointer += current_adress;
@@ -116,10 +118,21 @@ int checkassebmly(LPBYTE startpointer, int size) {
             //printf("New adress is %llu\n", (long long int)localpointer);
         }
         else if (current_instruction != 195){
-            throw std::invalid_argument("Written instruction was wrong");
+            throw std::invalid_argument("Incorrect instruction or adress");
         }
 
+        if (localpointer > maxpointer || localpointer < startpointer) {
+
+            throw std::invalid_argument("Pointer outside allocated memory space");
+        }
+      
+
         instruction_counter++;
+
+        if (instruction_counter > size) {
+            throw std::invalid_argument("Too many instructions");
+            break;
+        }
 
     }
 
