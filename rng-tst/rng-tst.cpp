@@ -87,20 +87,22 @@ int movethroughalt(int* arr, int size) {
 
 }
 
-int checkassebmly(LPBYTE startpointer, int size) {
+int checkassebmly(LPBYTE startpointer, int size, int* projected_instruction_count) {
 
     //very simple assembly emulator
     //returns completed instructions count
 
     LPBYTE localpointer = startpointer;
-    LPBYTE maxpointer = startpointer + (long long int)(size * 5) + 1;
+    LPBYTE maxpointer = startpointer + (long long int)size * 5 + 1;
 
     int instruction_counter = 0;
+
+    bool instruction_count_too_high_continue = 0;
 
     int current_instruction = 90; // noop, 0xE9 = 233 = jmp, 0xc3 = 195 = ret
     int32_t current_adress = 0;
 
-    while ((int)*localpointer != 195) {
+    while ((int)*localpointer != 0xC3) {
         
         current_instruction = (int)*localpointer;
         current_adress += (int)localpointer[4];
@@ -110,28 +112,48 @@ int checkassebmly(LPBYTE startpointer, int size) {
         current_adress += (int)(localpointer[2]);
         current_adress = current_adress << 8;
         current_adress += (int)(localpointer[1]);
-        if (current_instruction == 0xe9 && current_adress != -5) {
+        if (current_instruction == 0xE9 && current_adress != -5) {
             //printf("%i. Jmp %i\n", instruction_counter, current_adress/5);
             localpointer += 5;
             localpointer += current_adress;
             current_adress = 0;
             //printf("New adress is %llu\n", (long long int)localpointer);
         }
-        else if (current_instruction != 195){
-            throw std::invalid_argument("Incorrect instruction or adress");
+        else if (current_instruction != 0xE9){
+            //throw std::invalid_argument("Incorrect instruction or adress");
+            printf("Wrong instruction at adress 0x%llx\n", (long long int)localpointer);
+            return(-1);
+
         }
 
         if (localpointer > maxpointer || localpointer < startpointer) {
 
-            throw std::invalid_argument("Pointer outside allocated memory space");
+            printf("Pointer location outside of allocated memory space\n");
+            return(-2);
         }
       
 
         instruction_counter++;
 
-        if (instruction_counter > size) {
-            throw std::invalid_argument("Too many instructions");
-            break;
+        if (instruction_counter > *projected_instruction_count && !instruction_count_too_high_continue) {
+            //throw std::invalid_argument("Too many instructions");
+
+            printf("Instruction count too high. Continue testing? (y/n)\n");
+            int answer;
+            while (1 > 0) {
+                answer = getchar();
+                if ((char)answer == (char)*"y" || (char)answer == (char)*"Y") {
+                    instruction_count_too_high_continue = 1;
+                    break;
+                }
+                else if (answer == (char)*"n" || answer == (char)*"N") {
+                    return(-3);
+                    break; //not sure if needed, but probably doesnt hurt anything
+                }
+                else {
+                    printf("Wrong input, try again\n");
+                }
+            }
         }
 
     }
@@ -176,7 +198,7 @@ int assembly_write_exec(int32_t* arr, int size) {
 
         
     }
-    
+    int instructions_done = movethroughalt(arr, size);
     //printf("\nNew took %i moves to make it\n", movethroughalt(arr, size));
 
     for (ix = 0; ix < size; ix++) {
@@ -245,8 +267,27 @@ int assembly_write_exec(int32_t* arr, int size) {
             *localaddr = 0xc3;
         }
 
-        int instruction_count = checkassebmly((LPBYTE)lpvBase, size);
-        printf("Instruction_count is %i\n", instruction_count);
+        int instruction_count = checkassebmly((LPBYTE)lpvBase, size, &instructions_done);
+        if (instruction_count > 0) {
+            printf("Instruction_count is %i\n", instruction_count);
+        }
+        else {
+            printf("Error caught while testing. Wish to proceed with calling it as function?\n");
+            char answer;
+            while (1 > 0) {
+                answer = getchar();
+                if (answer == *"y" || answer == *"Y") { //'y' is constant char pointer apparently
+                    break;
+                }
+                else if (answer == (char)*"n" || answer == (char)*"N") {
+                    exit(EXIT_FAILURE);
+                    break; //not sure if needed, but probably doesnt hurt anything
+                }
+                else {
+                    printf("Wrong input, try again\n");
+                }
+            }
+        }
         //printf("\n Addr = %i\n", addr);
         //printf("\n Localaddr = %i\n", localaddr);
 
