@@ -242,7 +242,8 @@ int assembly_write_exec(int32_t* arr, int size) {
             
 
         int ii = 0;
-        printf("Addr is %llu\n", (long long int)localaddr);
+        printf("Addr is %ph\n", (localaddr));
+        //FIprintf("Intaddr is %llu\n", (long long int)localaddr);
         int newaddr;
         //int nextaddr = addr;
 
