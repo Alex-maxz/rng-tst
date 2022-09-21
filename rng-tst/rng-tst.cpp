@@ -18,7 +18,7 @@ int* toaddr(int32_t* arr, int size);
 
 int* neworder(int32_t* arr, int size);
 
-void checkassembly(LPBYTE startpointer, int size, int* projected_instruction_count);
+int checkassembly(LPBYTE startpointer, int size, int* projected_instruction_count);
 
 int movethrough(int* arr);
 
@@ -87,7 +87,7 @@ int movethroughalt(int* arr, int size) {
 
 }
 
-void checkassembly(LPBYTE startpointer, int size, int* projected_instruction_count) {
+int checkassembly(LPBYTE startpointer, int size, int* projected_instruction_count) {
 
     //very simple assembly emulator
     //returns completed instructions count
@@ -122,7 +122,7 @@ void checkassembly(LPBYTE startpointer, int size, int* projected_instruction_cou
         else if (current_instruction != 0xE9){
             //throw std::invalid_argument("Incorrect instruction or adress");
             printf("Wrong instruction at adress 0x%llx\n", (long long int)localpointer);
-            *projected_instruction_count = -1;
+            return(-1);
             break;
 
         }
@@ -130,7 +130,8 @@ void checkassembly(LPBYTE startpointer, int size, int* projected_instruction_cou
         if (localpointer > maxpointer || localpointer < startpointer) {
 
             printf("Pointer location outside of allocated memory space\n");
-            *projected_instruction_count = -2;
+            
+            return(-2);
             break;
         }
       
@@ -139,10 +140,10 @@ void checkassembly(LPBYTE startpointer, int size, int* projected_instruction_cou
 
         if (*projected_instruction_count > size) {
             //throw std::invalid_argument("Too many instructions");
-            *projected_instruction_count = -3;
+            return(-3);
             break;
         }
-
+        return 0;
     }
 
 }
@@ -255,27 +256,13 @@ int assembly_write_exec(int32_t* arr, int size) {
 
         int instruction_count;
 
-        checkassembly((LPBYTE)lpvBase, size, &instruction_count);
+        int outcode = checkassembly((LPBYTE)lpvBase, size, &instruction_count);
 
-        if (instruction_count > 0) {
-            printf("Instruction_count is %i\n", instruction_count);
+        if (outcode == 0) {
+            printf("No errors found. \nInstruction_count is %i.\n", instruction_count);
         }
         else {
-            printf("Error caught while testing. Wish to proceed with calling it as function?\n");
-            char answer;
-            while (1 > 0) {
-                answer = getchar();
-                if (answer == *"y" || answer == *"Y") { //'y' is constant char pointer apparently
-                    break;
-                }
-                else if (answer == (char)*"n" || answer == (char)*"N") {
-                    exit(EXIT_FAILURE);
-                    break; //not sure if needed, but probably doesnt hurt anything
-                }
-                else {
-                    printf("Wrong input, try again\n");
-                }
-            }
+            printf("Program ended with error code %i.\n", outcode);
         }
         //printf("\n Addr = %i\n", addr);
         //printf("\n Localaddr = %i\n", localaddr);
