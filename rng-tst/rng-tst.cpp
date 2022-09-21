@@ -123,6 +123,7 @@ void checkassembly(LPBYTE startpointer, int size, int* projected_instruction_cou
             //throw std::invalid_argument("Incorrect instruction or adress");
             printf("Wrong instruction at adress 0x%llx\n", (long long int)localpointer);
             *projected_instruction_count = -1;
+            break;
 
         }
 
@@ -130,6 +131,7 @@ void checkassembly(LPBYTE startpointer, int size, int* projected_instruction_cou
 
             printf("Pointer location outside of allocated memory space\n");
             *projected_instruction_count = -2;
+            break;
         }
       
 
@@ -138,6 +140,7 @@ void checkassembly(LPBYTE startpointer, int size, int* projected_instruction_cou
         if (*projected_instruction_count > size) {
             //throw std::invalid_argument("Too many instructions");
             *projected_instruction_count = -3;
+            break;
         }
 
     }
