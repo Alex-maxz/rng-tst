@@ -18,7 +18,7 @@ int* toaddr(int32_t* arr, int size);
 
 int* neworder(int32_t* arr, int size);
 
-int checkassembly(LPBYTE startpointer, int size);
+void checkassembly(LPBYTE startpointer, int size, int* projected_instruction_count);
 
 int movethrough(int* arr);
 
@@ -87,7 +87,7 @@ int movethroughalt(int* arr, int size) {
 
 }
 
-int checkassebmly(LPBYTE startpointer, int size, int* projected_instruction_count) {
+void checkassembly(LPBYTE startpointer, int size, int* projected_instruction_count) {
 
     //very simple assembly emulator
     //returns completed instructions count
@@ -95,9 +95,9 @@ int checkassebmly(LPBYTE startpointer, int size, int* projected_instruction_coun
     LPBYTE localpointer = startpointer;
     LPBYTE maxpointer = startpointer + (long long int)size * 5 + 1;
 
-    int instruction_counter = 0;
+    *projected_instruction_count = 0;
 
-    bool instruction_count_too_high_continue = 0;
+    //bool instruction_count_too_high_continue = 0;
 
     int current_instruction = 90; // noop, 0xE9 = 233 = jmp, 0xc3 = 195 = ret
     int32_t current_adress = 0;
@@ -122,43 +122,25 @@ int checkassebmly(LPBYTE startpointer, int size, int* projected_instruction_coun
         else if (current_instruction != 0xE9){
             //throw std::invalid_argument("Incorrect instruction or adress");
             printf("Wrong instruction at adress 0x%llx\n", (long long int)localpointer);
-            return(-1);
+            *projected_instruction_count = -1;
 
         }
 
         if (localpointer > maxpointer || localpointer < startpointer) {
 
             printf("Pointer location outside of allocated memory space\n");
-            return(-2);
+            *projected_instruction_count = -2;
         }
       
 
-        instruction_counter++;
+        (*projected_instruction_count) += 1;
 
-        if (instruction_counter > *projected_instruction_count && !instruction_count_too_high_continue) {
+        if (*projected_instruction_count > size) {
             //throw std::invalid_argument("Too many instructions");
-
-            printf("Instruction count too high. Continue testing? (y/n)\n");
-            int answer;
-            while (1 > 0) {
-                answer = getchar();
-                if ((char)answer == (char)*"y" || (char)answer == (char)*"Y") {
-                    instruction_count_too_high_continue = 1;
-                    break;
-                }
-                else if (answer == (char)*"n" || answer == (char)*"N") {
-                    return(-3);
-                    break; //not sure if needed, but probably doesnt hurt anything
-                }
-                else {
-                    printf("Wrong input, try again\n");
-                }
-            }
+            *projected_instruction_count = -3;
         }
 
     }
-
-    return instruction_counter;
 
 }
 
@@ -268,7 +250,10 @@ int assembly_write_exec(int32_t* arr, int size) {
             *localaddr = 0xc3;
         }
 
-        int instruction_count = checkassebmly((LPBYTE)lpvBase, size, &instructions_done);
+        int instruction_count;
+
+        checkassembly((LPBYTE)lpvBase, size, &instruction_count);
+
         if (instruction_count > 0) {
             printf("Instruction_count is %i\n", instruction_count);
         }
